@@ -6,3 +6,5 @@ openai
 passlib[bcrypt]
 python-jose
 requests
+beautifulsoup4
+lxml
