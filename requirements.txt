@@ -4,3 +4,4 @@ pymongo
 python-dotenv
 openai
 passlib[bcrypt]
+python-jose
