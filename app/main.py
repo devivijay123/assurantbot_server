@@ -280,10 +280,11 @@ from app.routes import user_routes, admin_routes, chat_routes, auth_routes
 app = FastAPI()
 
 origins = [
+    "https://assurantchatbotapp.onrender.com"
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5174",
-    "http://localhost:5173"
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
