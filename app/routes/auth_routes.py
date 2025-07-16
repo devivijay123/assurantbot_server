@@ -14,6 +14,7 @@ google_client_id = os.getenv("GOOGLE_CLIENT_ID")
 async def verify_token(data: Token):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={data.token}")
+        print("response",response)
     if response.status_code != 200:
         raise HTTPException(status_code=401, detail="Invalid token")
 
