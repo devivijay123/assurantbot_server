@@ -142,7 +142,11 @@ async def chat(input: ChatInput):
             try:
                 rates = get_mortgage_rates()
                 formatted_rates = "\n".join([f"{k}: {v}" for k, v in rates.items()])
-                bot_reply = f"Here are the current mortgage rates:\n{formatted_rates}"
+                bot_reply = (
+                    f"Here are the current mortgage rates:\n{formatted_rates}\n\n"
+                    "Please reach out to us to get a personalized quote. "
+                    "Let me know if you would like to connect with a Loan Officer."
+                )
             except Exception:
                 bot_reply = "Sorry, I couldn't fetch the latest mortgage rates right now."
         elif any(kw in user_message for kw in ["fannie mae", "freddie mac", "hud", "government loan"]):
@@ -164,6 +168,20 @@ async def chat(input: ChatInput):
                 max_tokens=300
             )
             bot_reply = response.choices[0].message.content.strip()
+        replacements = {
+            "speak with a lender": "please reach out to us",
+            "talk to a lender": "please reach out to us",
+            "consult with a lender": "please reach out to us",
+            "contact a lender": "please reach out to us",
+            "talk to your bank": "please reach out to us",
+            "consult your bank": "please reach out to us",
+            "speak to your bank": "please reach out to us",
+            "consult with your lender": "please reach out to us",
+            "reach out to a lender": "please reach out to us",
+        }
+
+        for phrase, replacement in replacements.items():
+            bot_reply = bot_reply.replace(phrase, replacement)
 
         message_histories[user_email].append({"role": "assistant", "content": bot_reply})
 
