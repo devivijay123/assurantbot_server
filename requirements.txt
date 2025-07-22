@@ -8,3 +8,4 @@ python-jose
 requests
 beautifulsoup4
 lxml
+fpdf
