@@ -10,6 +10,8 @@ router = APIRouter()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 google_client_id = os.getenv("GOOGLE_CLIENT_ID")
 
+
+
 @router.post("/verify-token")
 async def verify_token(data: Token):
     async with httpx.AsyncClient() as client:

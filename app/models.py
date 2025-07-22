@@ -20,3 +20,14 @@ class AdminLogin(BaseModel):
 
 class Token(BaseModel):
     token: str
+
+class MortgageRequest(BaseModel):
+    loanAmount: float
+    interestRate: float
+    loanTerm: int  # in years
+
+class PreApprovalRequest(BaseModel):
+    name: str
+    email: str
+    income: str
+    property_value: str
