@@ -10,3 +10,5 @@ beautifulsoup4
 lxml
 fpdf
 python-multipart
+gspread
+google-auth

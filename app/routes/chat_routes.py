@@ -11,6 +11,8 @@ import asyncio
 import logging
 from app.pdf_generator import generate_preapproval_pdf
 from app.email_service import send_email_with_attachment
+from app.pdf_generator import write_preapproval_to_sheet  
+from app.constants import PREAPPROVAL_FIELDS
 
 
 datetime.utcnow()
@@ -63,19 +65,7 @@ SYSTEM_PROMPT = (
     "Politely refuse to answer any question that is not about U.S. loans, mortgages, or housing finance."
 )
 
-PREAPPROVAL_FIELDS = [
-    {"key": "borrower_name", "question": "Please enter Borrower First Name and Last Name."},
-    {"key": "co_borrower_name", "question": "Co-Borrower First Name & Last Name (If applicable)."},
-    {"key": "email", "question": "Email Address", "validate": lambda v: "@" in v and "." in v},
-    {"key": "phone", "question": "Phone Number", "validate": lambda v: v.isdigit() and len(v) >= 10},
-    {"key": "purchase_price", "question": "Purchase Price", "validate": lambda v: v.replace(",", "").replace(".", "").isdigit()},
-    {"key": "loan_amount", "question": "Loan Amount", "validate": lambda v: v.replace(",", "").replace(".", "").isdigit()},
-    {"key": "down_payment", "question": "Down Payment (The source for these funds should be readily accessible such as cash, stock, 401K, CDs, etc.)"},
-    {"key": "property_address", "question": "Property Address (put TBD if unknown)"},
-    {"key": "gross_pay", "question": "Average Annual Documented Gross Pay over the last 2 years"},
-    {"key": "foreign_assets", "question": "Do you declare foreign assets and investments in your tax returns?"},
-    {"key": "credit_score", "question": "What is the average credit score reflected across all your banks and credit cards (Don’t use Credit Karma)?"}
-]
+
 #state management
 user_states = defaultdict(lambda: {
     "preapproval_started": False,
@@ -255,7 +245,7 @@ async def chat(input: ChatInput):
             logger.info("Navigated back to previous question")
             return {"reply": f"Okay, let's go back.\n{PREAPPROVAL_FIELDS[state['current_question_index']]['question']}"}
 
-        if "preapproval" in user_message.lower() and not state["preapproval_started"]:
+        if any(keyword in user_message.lower() for keyword in ["preapproval", "pre-approval", "pre approval"]) and not state["preapproval_started"]:
             state["preapproval_started"] = True
             state["current_question_index"] = 0
             logger.info("Pre-approval started")
@@ -278,14 +268,6 @@ async def chat(input: ChatInput):
                 logger.info(f"Next question: {next_question}")
                 return {"reply": next_question}
             else:
-                
-                # pre_approvals_collection.insert_one({
-                #     "email": user_email,
-                #     "data": state["answers"],
-                #     "submitted_at": datetime.utcnow()
-                # })
-                # del user_states[user_email]
-                # return {"reply": "✅ Thanks! We've received your pre-approval application. Our team will contact you shortly."}
                 pre_approvals_collection.insert_one({
                     "email": user_email,
                     "data": state["answers"],
@@ -294,13 +276,16 @@ async def chat(input: ChatInput):
 
                 # Generate PDF
                 pdf_path = generate_preapproval_pdf(state["answers"], user_email)
-
+                #spread sheet
+                # spreadsheet_url = write_preapproval_to_sheet(state["answers"])
                 # Send PDF via email
                 send_email_with_attachment(
                     to_email=user_email,
                     subject="Your Pre-Approval Application",
                     body="Hi,\n\nThanks for completing the pre-approval form. Please find the attached copy for your records.\n\nBest,\nTeam",
-                    file_path=pdf_path
+                    
+                    #  body=f"Hi,\n\nHere is your spreadsheet:\n\n{spreadsheet_url}\n\nRegards,\nTeam",
+                     file_path=pdf_path,
                 )
 
                 del user_states[user_email]
@@ -369,7 +354,7 @@ async def chat(input: ChatInput):
     except asyncio.CancelledError:
         raise HTTPException(status_code=499, detail="Request cancelled by client")
     except Exception as e:
-        print("Unexpected error:", str(e))
+        print("Unexpected error:", e)
         raise HTTPException(status_code=500, detail=str(e))
         
 

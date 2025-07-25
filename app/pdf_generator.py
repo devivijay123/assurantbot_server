@@ -1,5 +1,55 @@
+import logging
 from fpdf import FPDF
 from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
+
+from app.constants import PREAPPROVAL_FIELDS
+
+logger = logging.getLogger(__name__)
+    
+
+SERVICE_ACCOUNT_FILE = "./chat-bot-466011-31b3a06a5fd6.json"
+
+SPREADSHEET_ID = "10J4xrgHPCRmEENtEtA_kuoTsvMOohfmIvV571i_VPIo"
+
+SHEET_NAME = "Sheet1"  # Change if your sheet/tab name is different
+
+
+
+
+
+
+def write_preapproval_to_sheet(data):
+    try:
+        logger.info("Starting to write pre-approval data to Google Sheet.")
+        
+        scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scopes)
+        client = gspread.authorize(creds)
+
+        logger.debug("Successfully authenticated with Google Sheets API.")
+
+        sheet = client.open_by_key(SPREADSHEET_ID)
+        worksheet = sheet.sheet1  # Or .worksheet("YourSheetName")
+        logger.debug("Opened spreadsheet and selected worksheet.")
+
+        # Prepare row from data
+        row = [data.get(field["key"], "") for field in PREAPPROVAL_FIELDS]
+        logger.debug(f"Prepared row data: {row}")
+
+        worksheet.append_row(row)
+        logger.info("Data appended successfully to the Google Sheet.")
+
+        # Construct the spreadsheet link
+        spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit#gid=0"
+        logger.info(f"Spreadsheet URL: {spreadsheet_url}")
+        
+        return spreadsheet_url
+
+    except Exception as e:
+        logger.error(f"Error writing to spreadsheet: {e}", exc_info=True)
+        raise
 
 def generate_preapproval_pdf(data: dict, email: str) -> str:
     pdf = FPDF()
@@ -19,3 +69,6 @@ def generate_preapproval_pdf(data: dict, email: str) -> str:
     filename = f"preapproval_{email.replace('@', '_at_')}.pdf"
     pdf.output(filename)
     return filename
+
+
+
