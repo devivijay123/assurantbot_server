@@ -1,7 +1,8 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import user_routes, admin_routes, chat_routes, auth_routes, mortgage_routes
+from app.routes import user_routes, admin_routes, chat_routes, auth_routes, mortgage_routes, amortization_routes
+
 
 app = FastAPI()
 
@@ -25,3 +26,4 @@ app.include_router(user_routes.router)
 app.include_router(chat_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(mortgage_routes.router)
+app.include_router(amortization_routes.router)
