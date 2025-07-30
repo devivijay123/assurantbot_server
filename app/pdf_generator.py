@@ -28,7 +28,7 @@ def write_preapproval_to_sheet(data):
         logger.info("Starting to write pre-approval data to Google Sheet.")
         
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scopes)
+        creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=scopes)
         client = gspread.authorize(creds)
 
         logger.debug("Successfully authenticated with Google Sheets API.")
