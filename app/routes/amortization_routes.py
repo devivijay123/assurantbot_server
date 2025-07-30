@@ -550,9 +550,7 @@ def generate_amortization_schedule(
         yearlySchedule=yearly_schedule
     )
 
-@router.get("/")
-async def root():
-    return {"message": "Amortization Calculator API"}
+
 
 @router.post("/amortize-calculate", response_model=AmortizationResult)
 async def calculate_amortization(request: LoanRequest):

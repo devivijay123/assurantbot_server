@@ -12,3 +12,4 @@ fpdf
 python-multipart
 gspread
 google-auth
+aiofiles

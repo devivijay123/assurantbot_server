@@ -5,11 +5,14 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 from app.constants import PREAPPROVAL_FIELDS
+import os, json
 
 logger = logging.getLogger(__name__)
     
 
-SERVICE_ACCOUNT_FILE = "./chat-bot-466011-31b3a06a5fd6.json"
+SERVICE_ACCOUNT_FILE  = json.loads(os.getenv("GOOGLE_SHEET_CONFIG"))
+
+# SERVICE_ACCOUNT_FILE = "./chat-bot-466011-31b3a06a5fd6.json"
 
 SPREADSHEET_ID = "10J4xrgHPCRmEENtEtA_kuoTsvMOohfmIvV571i_VPIo"
 
@@ -33,7 +36,15 @@ def write_preapproval_to_sheet(data):
         sheet = client.open_by_key(SPREADSHEET_ID)
         worksheet = sheet.sheet1  # Or .worksheet("YourSheetName")
         logger.debug("Opened spreadsheet and selected worksheet.")
+        # Prepare headers (questions)
+        headers = [field["question"] for field in PREAPPROVAL_FIELDS]
 
+        # Check if headers are already present (first row)
+        existing_headers = worksheet.row_values(1)
+
+        if not existing_headers:  # If sheet is empty, add headers
+            worksheet.insert_row(headers, 1)
+            logger.info("Headers added to Google Sheet.")
         # Prepare row from data
         row = [data.get(field["key"], "") for field in PREAPPROVAL_FIELDS]
         logger.debug(f"Prepared row data: {row}")
