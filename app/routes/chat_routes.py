@@ -453,18 +453,22 @@ async def chat(
         if input:
             user_email = input.email
             user_message = input.message.strip()
-            chat_collection.insert_one(input.dict())
-        else:
+            if user_message:
+                chat_collection.insert_one(input.dict())
+        else:   
             user_email = email
             user_message = message.strip() if message else ""
             
+            if user_email not in message_histories or not message_histories[user_email]:
+                message_histories[user_email] = [{"role": "system", "content": SYSTEM_PROMPT}]
             # Store chat message
-            chat_data = {
-                "email": user_email,
-                "message": user_message,
-                "sender": "user",
-                "timestamp": datetime.utcnow()
-            }
+            if user_message:
+                chat_data = {
+                    "email": user_email,
+                    "message": user_message,
+                    "sender": "user",
+                    "timestamp": datetime.utcnow()
+                }
             chat_collection.insert_one(chat_data)
 
         logger.info(f"Chat request from {user_email}: {user_message}")
@@ -479,7 +483,7 @@ async def chat(
                     uploaded_files_info.append(file_info)
                     # Add to user state
                     state["uploaded_files"].append(file_info)
-
+                    
         # Handle restart command
         if user_message.lower() == "restart":
             user_states[user_email] = {
@@ -498,7 +502,7 @@ async def chat(
             return {"reply": f"Okay, let's go back.\n{PREAPPROVAL_FIELDS[state['current_question_index']]['question']}"}
 
         # Start pre-approval process
-        if any(keyword in user_message.lower() for keyword in ["preapproval", "pre-approval", "pre approval"]) and not state["preapproval_started"]:
+        if any(keyword in user_message.lower() for keyword in ["preapproval", "pre-approval", "pre approval", "pre app", "pre-app", "preapp"]) and not state["preapproval_started"]:
             state["preapproval_started"] = True
             state["current_question_index"] = 0
             # Auto-fill email immediately when starting pre-approval
@@ -643,7 +647,7 @@ async def chat(
         message_histories[user_email].append({"role": "user", "content": user_message})
 
         # Handle file upload acknowledgment in regular chat
-        if uploaded_files_info:
+        if uploaded_files_info: 
             file_names = [f["original_filename"] for f in uploaded_files_info]
             file_acknowledgment = f"✅ I've received your file(s): {', '.join(file_names)}. "
             
@@ -685,7 +689,7 @@ async def chat(
         # Add file acknowledgment to regular responses
         if uploaded_files_info and not state["preapproval_started"]:
             file_names = [f["original_filename"] for f in uploaded_files_info]
-            bot_reply = f"✅ I've received your file(s): {', '.join(file_names)}. " + bot_reply
+            bot_reply =  bot_reply
 
         # Apply text replacements
         replacements = {
@@ -704,13 +708,13 @@ async def chat(
             bot_reply = bot_reply.replace(phrase, replacement)
 
         message_histories[user_email].append({"role": "assistant", "content": bot_reply})
-
-        chat_collection.insert_one({
-            "email": user_email,
-            "message": bot_reply,
-            "sender": "bot",
-            "timestamp": datetime.utcnow()
-        })
+        if bot_reply.strip():
+            chat_collection.insert_one({
+                "email": user_email,
+                "message": bot_reply,
+                "sender": "bot",
+                "timestamp": datetime.utcnow()
+            })
 
         return {"reply": bot_reply}
 
