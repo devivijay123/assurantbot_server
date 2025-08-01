@@ -74,8 +74,8 @@ async def save_uploaded_file(file: UploadFile, user_email: str) -> dict:
         
         # Generate unique filename
         unique_filename = f"{uuid.uuid4()}_{file.filename}"
-        file_path = UPLOAD_DIR / unique_filename
-        
+        # file_path = UPLOAD_DIR / unique_filename
+        file_path = unique_filename
         # Save file
         async with aiofiles.open(file_path, 'wb') as f:
             await f.write(content)
@@ -472,8 +472,15 @@ async def chat(
             chat_collection.insert_one(chat_data)
 
         logger.info(f"Chat request from {user_email}: {user_message}")
-        state = user_states[user_email]
+        if user_email not in user_states:
+            user_states[user_email] = {
+                "preapproval_started": False,
+                "current_question_index": 0,
+                "answers": {},
+                "uploaded_files": []
+            }
 
+        state = user_states[user_email]
         # Handle file uploads first
         uploaded_files_info = []
         if files:
