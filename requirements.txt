@@ -15,3 +15,4 @@ google-auth
 aiofiles
 selenium
 webdriver_manager
+pandas
