@@ -16,3 +16,4 @@ aiofiles
 selenium
 webdriver_manager
 pandas
+playwright
