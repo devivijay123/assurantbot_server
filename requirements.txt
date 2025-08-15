@@ -17,3 +17,4 @@ selenium
 webdriver_manager
 pandas
 playwright
+flask
