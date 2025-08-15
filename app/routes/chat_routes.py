@@ -18,9 +18,7 @@ import aiofiles
 from typing import Optional,  List
 import uuid
 from pathlib import Path
-import openai
-from playwright.sync_api import sync_playwright
-import httpx
+
 from app.services.docuclipper_bank_statement import (validate_bank_statement_file, 
     format_bank_statement_summary, 
     DocuClipperError,
